@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Sistema de Gerenciamento de EHS</title>
+
+        <link
+            rel="shortcut icon"
+            href="./assets/imgs/favicon.png"
+            type="image/x-icon"
+        />
+
+        <!-- Style -->
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+            crossorigin="anonymous"
+        />
+        <link rel="stylesheet" href="./assets/css/toastr.min.css" />
+        <style>
+            /* Padrão */
+            * {
+                margin: 0px;
+                padding: 0px;
+                box-sizing: border-box;
+            }
+
+            :root {
+                --cor-primaria: #2498c0;
+            }
+
+            /* Barra topo */
+            #barra-topo {
+                position: relative;
+                min-height: 100px;
+                background: linear-gradient(
+                    90deg,
+                    #c4dce5 0%,
+                    #78d8f1 50%,
+                    var(--cor-primaria) 100%
+                );
+            }
+
+            #barra-topo .container {
+                padding: 10px;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                column-gap: 200px;
+            }
+
+            #barra-topo .container .logo {
+                max-height: 80px;
+            }
+
+            #barra-topo .container .titulo {
+                position: relative;
+
+                margin-bottom: 0px;
+                text-align: center;
+                font-size: 28px;
+                font-weight: bold;
+                color: #fff;
+            }
+
+            /* Conteúdo */
+            #conteudo {
+            }
+
+            #conteudo .container {
+                padding: 40px 15px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
+            /* Cabecalho */
+            #conteudo .container .cabecalho {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                row-gap: 40px;
+            }
+
+            #conteudo .container .cabecalho .titulo {
+                margin-bottom: 0px;
+                color: var(--cor-primaria);
+            }
+
+            #conteudo .container .cabecalho .agrupamento {
+                display: flex;
+                column-gap: 10px;
+            }
+
+            #conteudo .container .cabecalho .agrupamento .form-control {
+                border: 2px solid var(--cor-primaria);
+            }
+
+            /* Dados equipamentos */
+            #conteudo .container .dados-equimento {
+                margin-top: 40px;
+                align-items: center;
+                row-gap: 40px;
+            }
+
+            #conteudo .container .dados-equimento .form-group {
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                column-gap: 10px;
+            }
+
+            #conteudo .container .dados-equimento .form-label {
+                margin-bottom: 0px;
+                font-size: 18px;
+                color: #04a2ec;
+            }
+
+            #conteudo .container .dados-equimento .form-control {
+                background-color: #dbdbd1;
+                border: 2px solid var(--cor-primaria);
+            }
+
+            /* Botões de ação */
+            .botoes-acao {
+                display: flex;
+                justify-content: flex-end;
+                column-gap: 10px;
+            }
+
+            @media screen and (min-width: 992px) {
+                /* Barra topo */
+                #barra-topo .container {
+                    justify-content: space-between;
+                }
+
+                #barra-topo .container .titulo {
+                    left: -50%;
+                    transform: translateX(50%);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Barra do topo -->
+        <header id="barra-topo" class="container-fluid">
+            <div class="container">
+                <img
+                    src="./assets/imgs/logo.png"
+                    alt="TEC-RDC logo"
+                    class="logo"
+                />
+
+                <h1 class="titulo">Sistema de Gerenciamento de EHS</h1>
+            </div>
+        </header>
+
+        <!-- Conteúdo -->
+        <div id="conteudo" class="container-fluid">
+            <form class="container">
+                <!-- Fundo -->
+                <div
+                    style="
+                        position: fixed;
+                        top: 100px;
+                        display: flex;
+                        width: 100vw;
+                        height: calc(100vh - 100px);
+                        z-index: -1;
+                        justify-content: center;
+                        align-items: center;
+                    "
+                >
+                    <img
+                        src="./assets/imgs/logo-opaca.png"
+                        alt="Logo TEC-RDC"
+                        style="width: 100%"
+                    />
+                </div>
+
+                <!-- Cabeçalho -->
+                <div class="cabecalho col-12 justify-content-center">
+                    <h2 class="titulo col-12 text-center">
+                        Consulta de Equipamentos
+                    </h2>
+
+                    <div
+                        class="col-8 d-flex justify-content-center align-items-center"
+                        style="
+                            column-gap: 20px;
+                            background-color: #f4f4f5;
+                            border-radius: 5px;
+                            padding: 30px;
+                            box-shadow: 1px 1px 11px var(--cor-primaria);
+                        "
+                    >
+                        <label for="input_equipamento" class="form-label mb-0">
+                            <strong>Equipamento</strong>
+                        </label>
+
+                        <div class="col-6">
+                            <input
+                                list="datalist_equipamentos"
+                                id="input_equipamento"
+                                class="form-control"
+                                placeholder="Selecione um equipamento"
+                                onchange="seleciona_equipamento();"
+                                onblur="seleciona_equipamento();"
+                            />
+                        </div>
+
+                        <datalist id="datalist_equipamentos"></datalist>
+                    </div>
+                </div>
+
+                <!-- Dados equipamento -->
+                <div class="dados-equimento row col-12">
+                    <div class="col-12 col-md-8">
+                        <div class="form-group col-12">
+                            <label class="form-label col-2">Codigo:</label>
+
+                            <div class="col-1">
+                                <input
+                                    type="text"
+                                    class="codigo form-control"
+                                    readonly
+                                />
+                            </div>
+                        </div>
+
+                        <div class="form-group col-12">
+                            <label class="form-label col-2">Modelo</label>
+
+                            <div class="col-6">
+                                <input
+                                    type="text"
+                                    class="modelo form-control"
+                                    readonly
+                                />
+                            </div>
+                        </div>
+
+                        <div class="form-group col-12">
+                            <label class="form-label col-2">Serie</label>
+
+                            <div class="col-2">
+                                <input
+                                    type="text"
+                                    class="serie form-control"
+                                    readonly
+                                />
+                            </div>
+                        </div>
+
+                        <div class="form-group col-12">
+                            <label class="form-label col-2">Tipo</label>
+
+                            <div class="col-1">
+                                <input
+                                    type="text"
+                                    class="tipo form-control"
+                                    readonly
+                                />
+                            </div>
+
+                            <div class="col-6">
+                                <input
+                                    type="text"
+                                    class="tipo form-control"
+                                    readonly
+                                />
+                            </div>
+                        </div>
+
+                        <div class="form-group col-12">
+                            <label class="form-label col-2">Fabricante</label>
+
+                            <div class="col-2">
+                                <input
+                                    type="text"
+                                    class="fabricante form-control"
+                                    readonly
+                                />
+                            </div>
+
+                            <div class="col-6">
+                                <input
+                                    type="text"
+                                    class="fabricante form-control"
+                                    readonly
+                                />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="form-group col-12">
+                                <label class="form-label col-2">
+                                    Capacidades
+                                </label>
+
+                                <div class="form-group col-10 mb-0">
+                                    <div class="form-group col-4 mb-0">
+                                        <label
+                                            class="form-label col-6 text-end"
+                                        >
+                                            Min
+                                        </label>
+
+                                        <div class="col-6">
+                                            <input
+                                                type="number"
+                                                class="capacidade_minima form-control"
+                                                readonly
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-6 mb-0">
+                                        <label
+                                            class="form-label col-6 text-end"
+                                        >
+                                            Max
+                                        </label>
+
+                                        <div class="col-5">
+                                            <input
+                                                type="number"
+                                                class="capacidade_maxima form-control"
+                                                readonly
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group col-12">
+                            <label class="form-label col-2">Escala</label>
+
+                            <div class="col-10 d-flex">
+                                <div class="col-2">
+                                    <input
+                                        type="text"
+                                        class="escala form-control"
+                                        readonly
+                                    />
+                                </div>
+
+                                <div
+                                    class="col-10 d-flex align-items-center"
+                                    style="column-gap: 10px"
+                                >
+                                    <label class="form-label col-3 text-center">
+                                        Localizacao
+                                    </label>
+
+                                    <div class="col-1">
+                                        <input
+                                            type="text"
+                                            class="localizacao form-control"
+                                            readonly
+                                        />
+                                    </div>
+
+                                    <div class="col-8">
+                                        <input
+                                            type="text"
+                                            class="localizacao form-control"
+                                            readonly
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label col-2">Situação</label>
+
+                            <div class="col-2">
+                                <select class="situacao form-control" disabled>
+                                    <option value=""></option>
+                                    <option value="0">Inativo</option>
+                                    <option value="1">Ativo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="col-12 col-md-3"
+                        style="
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            aspect-ratio: 1;
+                            object-fit: cover;
+                            align-self: baseline;
+                            border: 2px dashed var(--cor-primaria);
+                        "
+                    >
+                        <img
+                            alt="imagem do equipamento"
+                            src="./assets/imgs/sem-imagem.jpg"
+                            class="imagem"
+                            style="
+                                width: 100%;
+                                aspect-ratio: 1;
+                                object-fit: cover;
+                                border-radius: 5px;
+                            "
+                        />
+                    </div>
+                </div>
+
+                <!-- Botões de ação -->
+                <div class="botoes-acao col-12">
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        onclick="consulta_calibracao_produto();"
+                    >
+                        Calibração
+                    </button>
+                    <button
+                        type="reset"
+                        class="btn btn-secondary"
+                        onclick="limpar_campos_equimento();"
+                    >
+                        Limpar
+                    </button>
+                    <button type="button" class="btn btn-secondary">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Script -->
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+            crossorigin="anonymous"
+        ></script>
+        <script src="./assets/js/jquery.min.js"></script>
+        <script src="./assets/js/toastr.min.js"></script>
+        <script>
+            // Dados
+            var EQUIPAMENTOS = [
+                {
+                    codigo: "EHS001",
+                    modelo: "Estação de Lavagem de Mãos",
+                    serie: "S004",
+                    tipo: "Higiene",
+                    fabricante: "CleanTech",
+                    capacidade_minima: 1,
+                    capacidade_maxima: 10,
+                    escala: "Pequena",
+                    localizacao: "Área Comum",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+                {
+                    codigo: "EHS002",
+                    modelo: "Kit de Limpeza Universal",
+                    serie: "S004",
+                    tipo: "Limpeza",
+                    fabricante: "PureClean",
+                    capacidade_minima: 5,
+                    capacidade_maxima: 25,
+                    escala: "Média",
+                    localizacao: "Armário de Limpeza",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi2.jpg",
+                },
+                {
+                    codigo: "EHS003",
+                    modelo: "Extintor de Incêndio",
+                    serie: "S004",
+                    tipo: "Segurança",
+                    fabricante: "FireGuard",
+                    capacidade_minima: 1,
+                    capacidade_maxima: 5,
+                    escala: "Pequena",
+                    localizacao: "Corredor Principal",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi3.webp",
+                },
+                {
+                    codigo: "EHS030",
+                    modelo: "Sinalização de Saída de Emergência",
+                    serie: "S004",
+                    tipo: "Segurança",
+                    fabricante: "ExitSafe",
+                    capacidade_minima: 1,
+                    capacidade_maxima: 10,
+                    escala: "Pequena",
+                    localizacao: "Saída de Emergência",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+                {
+                    codigo: "0001",
+                    modelo: "Capacete de Segurança",
+                    serie: "ABCD123456",
+                    tipo: "Capacete",
+                    fabricante: "Prometal",
+                    capacidade_minima: 0,
+                    capacidade_maxima: 100,
+                    escala: "mm",
+                    localizacap: "Cabeça",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi2.jpg",
+                },
+                {
+                    codigo: "0002",
+                    modelo: "Luvas de Segurança",
+                    serie: "EFGH678901",
+                    tipo: "Luvas",
+                    fabricante: "3M",
+                    capacidade_minima: 0,
+                    capacidade_maxima: 100,
+                    escala: "cm",
+                    localizacap: "Mãos",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi3.webp",
+                },
+                {
+                    codigo: "0003",
+                    modelo: "Modelo A",
+                    serie: "S001",
+                    tipo: "Luvas",
+                    fabricante: "EmpresaX",
+                    capacidade_minima: 10,
+                    capacidade_maxima: 50,
+                    escala: "Pequena",
+                    localizacao: "Armário 1",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+                {
+                    codigo: "0004",
+                    modelo: "Modelo B",
+                    serie: "S002",
+                    tipo: "Óculos de Proteção",
+                    fabricante: "EmpresaY",
+                    capacidade_minima: 5,
+                    capacidade_maxima: 20,
+                    escala: "Média",
+                    localizacao: "Gaveta 3",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi2.jpg",
+                },
+                {
+                    codigo: "0005",
+                    modelo: "Modelo C",
+                    serie: "S030",
+                    tipo: "Protetor Auricular",
+                    fabricante: "EmpresaZ",
+                    capacidade_minima: 8,
+                    capacidade_maxima: 25,
+                    escala: "Grande",
+                    localizacao: "Prateleira 2",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi3.webp",
+                },
+                {
+                    codigo: "0006",
+                    modelo: "Modelo A",
+                    serie: "S001",
+                    tipo: "Luvas",
+                    fabricante: "EmpresaX",
+                    capacidade_minima: 10,
+                    capacidade_maxima: 50,
+                    escala: "Pequena",
+                    localizacao: "Armário 1",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+                {
+                    codigo: "0007",
+                    modelo: "Modelo B",
+                    serie: "S002",
+                    tipo: "Óculos de Proteção",
+                    fabricante: "EmpresaY",
+                    capacidade_minima: 5,
+                    capacidade_maxima: 20,
+                    escala: "Média",
+                    localizacao: "Gaveta 3",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi2.jpg",
+                },
+                {
+                    codigo: "0008",
+                    modelo: "Modelo C",
+                    serie: "S003",
+                    tipo: "Máscara Respiratória",
+                    fabricante: "EmpresaZ",
+                    capacidade_minima: 2,
+                    capacidade_maxima: 15,
+                    escala: "Pequena",
+                    localizacao: "Prateleira 2",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi3.webp",
+                },
+                {
+                    codigo: "0009",
+                    modelo: "Modelo XYZ",
+                    serie: "S030",
+                    tipo: "Protetor Auditivo",
+                    fabricante: "EmpresaABC",
+                    capacidade_minima: 8,
+                    capacidade_maxima: 25,
+                    escala: "Grande",
+                    localizacao: "Prateleira 5",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+                {
+                    codigo: "0010",
+                    modelo: "Luvas de Proteção",
+                    serie: "S001",
+                    tipo: "Luvas",
+                    fabricante: "SafetyCorp",
+                    capacidade_minima: 10,
+                    capacidade_maxima: 50,
+                    escala: "Pequena",
+                    localizacao: "Armário 1",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi2.jpg",
+                },
+                {
+                    codigo: "0011",
+                    modelo: "Óculos de Segurança",
+                    serie: "S002",
+                    tipo: "Óculos de Proteção",
+                    fabricante: "VisionShield",
+                    capacidade_minima: 5,
+                    capacidade_maxima: 20,
+                    escala: "Média",
+                    localizacao: "Gaveta 3",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi3.webp",
+                },
+                {
+                    codigo: "0012",
+                    modelo: "Máscara N95",
+                    serie: "S003",
+                    tipo: "Máscara Respiratória",
+                    fabricante: "SafeBreath",
+                    capacidade_minima: 2,
+                    capacidade_maxima: 15,
+                    escala: "Pequena",
+                    localizacao: "Prateleira 2",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+                {
+                    codigo: "0013",
+                    modelo: "Capacete de Segurança",
+                    serie: "S004",
+                    tipo: "Capacete",
+                    fabricante: "HeadGuard",
+                    capacidade_minima: 5,
+                    capacidade_maxima: 30,
+                    escala: "Média",
+                    localizacao: "Cabide 1",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi2.jpg",
+                },
+                {
+                    codigo: "0014",
+                    modelo: "Protetor Auricular",
+                    serie: "S005",
+                    tipo: "Protetor Auditivo",
+                    fabricante: "EarSafe",
+                    capacidade_minima: 8,
+                    capacidade_maxima: 25,
+                    escala: "Grande",
+                    localizacao: "Prateleira 5",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi3.webp",
+                },
+                {
+                    codigo: "0015",
+                    modelo: "Cinto de Segurança",
+                    serie: "S030",
+                    tipo: "Cinto de Proteção",
+                    fabricante: "SafeBelt",
+                    capacidade_minima: 12,
+                    capacidade_maxima: 40,
+                    escala: "Média",
+                    localizacao: "Gaveta 4",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+            ];
+
+            // Equipamentos
+            function renderiza_datalist_equipamentos() {
+                const datalist = document.querySelector(
+                    "#datalist_equipamentos"
+                );
+                datalist.innerHTML = "";
+
+                EQUIPAMENTOS.forEach((equipamento) => {
+                    datalist.innerHTML += `
+                        <option value="${equipamento.codigo}">${equipamento.modelo}</option>
+                    `;
+                });
+            }
+
+            function seleciona_equipamento() {
+                const codigo = String(
+                    document.querySelector("#input_equipamento").value
+                ).trim();
+
+                const equipamentos = EQUIPAMENTOS.filter(
+                    (equipamento) =>
+                        String(equipamento.codigo).trim() ==
+                        String(codigo).trim()
+                );
+
+                if (equipamentos.length == 0) {
+                    return;
+                }
+
+                const equipamento = equipamentos[0];
+                document
+                    .querySelectorAll(".dados-equimento .codigo")
+                    .forEach((elemento) => {
+                        elemento.value = equipamento.codigo;
+                    });
+                document
+                    .querySelectorAll(".dados-equimento .modelo")
+                    .forEach((elemento) => {
+                        elemento.value = equipamento.modelo;
+                    });
+                document
+                    .querySelectorAll(".dados-equimento .serie")
+                    .forEach((elemento) => {
+                        elemento.value = equipamento.serie;
+                    });
+                document
+                    .querySelectorAll(".dados-equimento .tipo")
+                    .forEach((elemento) => {
+                        elemento.value = equipamento.tipo;
+                    });
+                document
+                    .querySelectorAll(".dados-equimento .fabricante")
+                    .forEach((elemento) => {
+                        elemento.value = equipamento.fabricante;
+                    });
+                document
+                    .querySelectorAll(".dados-equimento .capacidade_minima")
+                    .forEach((elemento) => {
+                        elemento.value = equipamento.capacidade_minima;
+                    });
+                document
+                    .querySelectorAll(".dados-equimento .capacidade_maxima")
+                    .forEach((elemento) => {
+                        elemento.value = equipamento.capacidade_maxima;
+                    });
+                document
+                    .querySelectorAll(".dados-equimento .escala")
+                    .forEach((elemento) => {
+                        elemento.value = equipamento.escala;
+                    });
+                document
+                    .querySelectorAll(".dados-equimento .localizacao")
+                    .forEach((elemento) => {
+                        elemento.value = equipamento.localizacao;
+                    });
+                document
+                    .querySelectorAll(".dados-equimento .situacao")
+                    .forEach((elemento) => {
+                        elemento.value = equipamento.situacao;
+                    });
+                document
+                    .querySelectorAll(".dados-equimento .imagem")
+                    .forEach((elemento) => {
+                        elemento.src = equipamento.imagem;
+                    });
+            }
+
+            function limpar_campos_equimento() {
+                document.querySelector(".dados-equimento .imagem").src =
+                    "./assets/imgs/sem-imagem.jpg";
+            }
+
+            function consulta_calibracao_produto() {
+                const codigo = String(
+                    document.querySelector(".dados-equimento .codigo").value
+                ).trim();
+
+                if (codigo == "") {
+                    toastr.error("Selecione um equipamento.");
+                    return;
+                }
+
+                const equipamentos = EQUIPAMENTOS.filter(
+                    (equipamento) =>
+                        String(equipamento.codigo).trim() ==
+                        String(codigo).trim()
+                );
+
+                if (equipamentos.length == 0) {
+                    toastr.error("Código do equipamento inválido.");
+                    return;
+                }
+
+                const a = document.createElement("a");
+                a.href =
+                    "./consulta_calibracoes_produto.html" +
+                    "?" +
+                    new URLSearchParams({
+                        codigo: codigo,
+                    });
+                document.body.appendChild(a);
+                a.click();
+            }
+
+            // Inicialização
+            window.addEventListener("load", async function () {
+                // Equipamentos
+                renderiza_datalist_equipamentos();
+            });
+        </script>
+    </body>
+</html>

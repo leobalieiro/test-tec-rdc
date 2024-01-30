@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Sistema de Gerenciamento de EHS</title>
+
+        <link
+            rel="shortcut icon"
+            href="./assets/imgs/favicon.png"
+            type="image/x-icon"
+        />
+
+        <!-- Style -->
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+            crossorigin="anonymous"
+        />
+        <link rel="stylesheet" href="./assets/css/toastr.min.css" />
+        <style>
+            /* Padrão */
+            * {
+                margin: 0px;
+                padding: 0px;
+                box-sizing: border-box;
+            }
+
+            :root {
+                --cor-primaria: #2498c0;
+            }
+
+            /* Barra topo */
+            #barra-topo {
+                position: relative;
+                min-height: 100px;
+                background: linear-gradient(
+                    90deg,
+                    #c4dce5 0%,
+                    #78d8f1 50%,
+                    var(--cor-primaria) 100%
+                );
+            }
+
+            #barra-topo .container {
+                padding: 10px;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                column-gap: 200px;
+            }
+
+            #barra-topo .container .logo {
+                max-height: 80px;
+            }
+
+            #barra-topo .container .titulo {
+                position: relative;
+
+                margin-bottom: 0px;
+                text-align: center;
+                font-size: 28px;
+                font-weight: bold;
+                color: #fff;
+            }
+
+            /* Conteúdo */
+            #conteudo {
+            }
+
+            #conteudo .container {
+                padding: 40px 15px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
+            /* Cabecalho */
+            #conteudo .container .cabecalho {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                row-gap: 40px;
+            }
+
+            #conteudo .container .cabecalho .titulo {
+                margin-bottom: 0px;
+                color: var(--cor-primaria);
+            }
+
+            #conteudo .container .cabecalho .agrupamento {
+                display: flex;
+                column-gap: 10px;
+            }
+
+            #conteudo .container .cabecalho .agrupamento .form-control {
+                border: 2px solid var(--cor-primaria);
+            }
+
+            /* Tabela de calibrações */
+            #conteudo .container .tabela-calibracoes {
+                margin-top: 40px;
+            }
+
+            #conteudo .container .tabela-calibracoes thead tr {
+                background-color: #007199;
+                color: #fff;
+            }
+
+            #conteudo .container .tabela-calibracoes thead tr th:first-child {
+                border-top-left-radius: 5px;
+            }
+            #conteudo .container .tabela-calibracoes thead tr th:last-child {
+                border-top-right-radius: 5px;
+            }
+
+            @media screen and (min-width: 992px) {
+                /* Barra topo */
+                #barra-topo .container {
+                    justify-content: space-between;
+                }
+
+                #barra-topo .container .titulo {
+                    left: -50%;
+                    transform: translateX(50%);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Barra do topo -->
+        <header id="barra-topo" class="container-fluid">
+            <div class="container">
+                <img
+                    src="./assets/imgs/logo.png"
+                    alt="TEC-RDC logo"
+                    class="logo"
+                />
+
+                <h1 class="titulo">Sistema de Gerenciamento de EHS</h1>
+            </div>
+        </header>
+
+        <!-- Conteúdo -->
+        <div id="conteudo" class="container-fluid">
+            <form class="container">
+                <!-- Fundo -->
+                <div
+                    style="
+                        position: fixed;
+                        top: 100px;
+                        display: flex;
+                        width: 100vw;
+                        height: calc(100vh - 100px);
+                        z-index: -1;
+                        justify-content: center;
+                        align-items: center;
+                    "
+                >
+                    <img
+                        src="./assets/imgs/logo-opaca.png"
+                        alt="Logo TEC-RDC"
+                        style="width: 100%"
+                    />
+                </div>
+
+                <!-- Cabeçalho -->
+                <div class="cabecalho col-12 justify-content-center">
+                    <h2 class="titulo col-12 text-center">
+                        Consulta de Calibrações dos Produtos
+                    </h2>
+
+                    <div
+                        class="col-8 d-flex justify-content-center align-items-center"
+                        style="
+                            column-gap: 20px;
+                            background-color: #f4f4f5;
+                            border-radius: 5px;
+                            padding: 30px;
+                            box-shadow: 1px 1px 11px var(--cor-primaria);
+                        "
+                    >
+                        <label for="input_equipamento" class="form-label mb-0">
+                            <strong>Equipamento</strong>
+                        </label>
+
+                        <div class="col-6">
+                            <input
+                                list="datalist_equipamentos"
+                                id="input_equipamento"
+                                class="form-control"
+                                placeholder="Selecione um equipamento"
+                                onchange="seleciona_equipamento();"
+                                onblur="seleciona_equipamento();"
+                            />
+                        </div>
+
+                        <datalist id="datalist_equipamentos"></datalist>
+                    </div>
+                </div>
+
+                <!-- Tabela de calibrações -->
+                <table class="tabela-calibracoes table">
+                    <thead>
+                        <tr>
+                            <th>Laboratório</th>
+                            <th>Caertificado</th>
+                            <th>Norma</th>
+                            <th>Data Calibração</th>
+                            <th>Prazo Calibração</th>
+                            <th>Próxima Calibração</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+
+                    <tbody></tbody>
+                </table>
+            </form>
+        </div>
+
+        <!-- Script -->
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+            crossorigin="anonymous"
+        ></script>
+        <script src="./assets/js/jquery.min.js"></script>
+        <script src="./assets/js/toastr.min.js"></script>
+        <script>
+            // Dados
+            var EQUIPAMENTOS = [
+                {
+                    codigo: "EHS001",
+                    modelo: "Estação de Lavagem de Mãos",
+                    serie: "S004",
+                    tipo: "Higiene",
+                    fabricante: "CleanTech",
+                    capacidade_minima: 1,
+                    capacidade_maxima: 10,
+                    escala: "Pequena",
+                    localizacao: "Área Comum",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+                {
+                    codigo: "EHS002",
+                    modelo: "Kit de Limpeza Universal",
+                    serie: "S004",
+                    tipo: "Limpeza",
+                    fabricante: "PureClean",
+                    capacidade_minima: 5,
+                    capacidade_maxima: 25,
+                    escala: "Média",
+                    localizacao: "Armário de Limpeza",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi2.jpg",
+                },
+                {
+                    codigo: "EHS003",
+                    modelo: "Extintor de Incêndio",
+                    serie: "S004",
+                    tipo: "Segurança",
+                    fabricante: "FireGuard",
+                    capacidade_minima: 1,
+                    capacidade_maxima: 5,
+                    escala: "Pequena",
+                    localizacao: "Corredor Principal",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi3.webp",
+                },
+                {
+                    codigo: "EHS030",
+                    modelo: "Sinalização de Saída de Emergência",
+                    serie: "S004",
+                    tipo: "Segurança",
+                    fabricante: "ExitSafe",
+                    capacidade_minima: 1,
+                    capacidade_maxima: 10,
+                    escala: "Pequena",
+                    localizacao: "Saída de Emergência",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+                {
+                    codigo: "0001",
+                    modelo: "Capacete de Segurança",
+                    serie: "ABCD123456",
+                    tipo: "Capacete",
+                    fabricante: "Prometal",
+                    capacidade_minima: 0,
+                    capacidade_maxima: 100,
+                    escala: "mm",
+                    localizacap: "Cabeça",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi2.jpg",
+                },
+                {
+                    codigo: "0002",
+                    modelo: "Luvas de Segurança",
+                    serie: "EFGH678901",
+                    tipo: "Luvas",
+                    fabricante: "3M",
+                    capacidade_minima: 0,
+                    capacidade_maxima: 100,
+                    escala: "cm",
+                    localizacap: "Mãos",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi3.webp",
+                },
+                {
+                    codigo: "0003",
+                    modelo: "Modelo A",
+                    serie: "S001",
+                    tipo: "Luvas",
+                    fabricante: "EmpresaX",
+                    capacidade_minima: 10,
+                    capacidade_maxima: 50,
+                    escala: "Pequena",
+                    localizacao: "Armário 1",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+                {
+                    codigo: "0004",
+                    modelo: "Modelo B",
+                    serie: "S002",
+                    tipo: "Óculos de Proteção",
+                    fabricante: "EmpresaY",
+                    capacidade_minima: 5,
+                    capacidade_maxima: 20,
+                    escala: "Média",
+                    localizacao: "Gaveta 3",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi2.jpg",
+                },
+                {
+                    codigo: "0005",
+                    modelo: "Modelo C",
+                    serie: "S030",
+                    tipo: "Protetor Auricular",
+                    fabricante: "EmpresaZ",
+                    capacidade_minima: 8,
+                    capacidade_maxima: 25,
+                    escala: "Grande",
+                    localizacao: "Prateleira 2",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi3.webp",
+                },
+                {
+                    codigo: "0006",
+                    modelo: "Modelo A",
+                    serie: "S001",
+                    tipo: "Luvas",
+                    fabricante: "EmpresaX",
+                    capacidade_minima: 10,
+                    capacidade_maxima: 50,
+                    escala: "Pequena",
+                    localizacao: "Armário 1",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+                {
+                    codigo: "0007",
+                    modelo: "Modelo B",
+                    serie: "S002",
+                    tipo: "Óculos de Proteção",
+                    fabricante: "EmpresaY",
+                    capacidade_minima: 5,
+                    capacidade_maxima: 20,
+                    escala: "Média",
+                    localizacao: "Gaveta 3",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi2.jpg",
+                },
+                {
+                    codigo: "0008",
+                    modelo: "Modelo C",
+                    serie: "S003",
+                    tipo: "Máscara Respiratória",
+                    fabricante: "EmpresaZ",
+                    capacidade_minima: 2,
+                    capacidade_maxima: 15,
+                    escala: "Pequena",
+                    localizacao: "Prateleira 2",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi3.webp",
+                },
+                {
+                    codigo: "0009",
+                    modelo: "Modelo XYZ",
+                    serie: "S030",
+                    tipo: "Protetor Auditivo",
+                    fabricante: "EmpresaABC",
+                    capacidade_minima: 8,
+                    capacidade_maxima: 25,
+                    escala: "Grande",
+                    localizacao: "Prateleira 5",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+                {
+                    codigo: "0010",
+                    modelo: "Luvas de Proteção",
+                    serie: "S001",
+                    tipo: "Luvas",
+                    fabricante: "SafetyCorp",
+                    capacidade_minima: 10,
+                    capacidade_maxima: 50,
+                    escala: "Pequena",
+                    localizacao: "Armário 1",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi2.jpg",
+                },
+                {
+                    codigo: "0011",
+                    modelo: "Óculos de Segurança",
+                    serie: "S002",
+                    tipo: "Óculos de Proteção",
+                    fabricante: "VisionShield",
+                    capacidade_minima: 5,
+                    capacidade_maxima: 20,
+                    escala: "Média",
+                    localizacao: "Gaveta 3",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi3.webp",
+                },
+                {
+                    codigo: "0012",
+                    modelo: "Máscara N95",
+                    serie: "S003",
+                    tipo: "Máscara Respiratória",
+                    fabricante: "SafeBreath",
+                    capacidade_minima: 2,
+                    capacidade_maxima: 15,
+                    escala: "Pequena",
+                    localizacao: "Prateleira 2",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+                {
+                    codigo: "0013",
+                    modelo: "Capacete de Segurança",
+                    serie: "S004",
+                    tipo: "Capacete",
+                    fabricante: "HeadGuard",
+                    capacidade_minima: 5,
+                    capacidade_maxima: 30,
+                    escala: "Média",
+                    localizacao: "Cabide 1",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi2.jpg",
+                },
+                {
+                    codigo: "0014",
+                    modelo: "Protetor Auricular",
+                    serie: "S005",
+                    tipo: "Protetor Auditivo",
+                    fabricante: "EarSafe",
+                    capacidade_minima: 8,
+                    capacidade_maxima: 25,
+                    escala: "Grande",
+                    localizacao: "Prateleira 5",
+                    situacao: 1,
+                    imagem: "./assets/imgs/epi3.webp",
+                },
+                {
+                    codigo: "0015",
+                    modelo: "Cinto de Segurança",
+                    serie: "S030",
+                    tipo: "Cinto de Proteção",
+                    fabricante: "SafeBelt",
+                    capacidade_minima: 12,
+                    capacidade_maxima: 40,
+                    escala: "Média",
+                    localizacao: "Gaveta 4",
+                    situacao: 0,
+                    imagem: "./assets/imgs/epi1.jpg",
+                },
+            ];
+            var CALIBRACOES = [
+                {
+                    equipamento_codigo: "EHS001",
+                    laboratorio: "Lab1",
+                    certificado: "Cert123",
+                    norma: "ISO 9001",
+                    data_calibracao: "2023-02-15",
+                    prazo_calibracao: "2024-02-15",
+                    proxima_calibracao: "2025-02-15",
+                },
+                {
+                    equipamento_codigo: "EHS001",
+                    laboratorio: "Lab1",
+                    certificado: "Cert123",
+                    norma: "ISO 9001",
+                    data_calibracao: "2023-02-15",
+                    prazo_calibracao: "2024-02-15",
+                    proxima_calibracao: "2025-02-15",
+                },
+                {
+                    equipamento_codigo: "EHS001",
+                    laboratorio: "Lab1",
+                    certificado: "Cert123",
+                    norma: "ISO 9001",
+                    data_calibracao: "2023-02-15",
+                    prazo_calibracao: "2024-02-15",
+                    proxima_calibracao: "2025-02-15",
+                },
+                {
+                    equipamento_codigo: "EHS001",
+                    laboratorio: "Lab1",
+                    certificado: "Cert123",
+                    norma: "ISO 9001",
+                    data_calibracao: "2023-02-15",
+                    prazo_calibracao: "2024-02-15",
+                    proxima_calibracao: "2025-02-15",
+                },
+
+                {
+                    equipamento_codigo: "EHS003",
+                    laboratorio: "Lab3",
+                    certificado: "Cert789",
+                    norma: "OHSAS 18001",
+                    data_calibracao: "2023-04-10",
+                    prazo_calibracao: "2024-04-10",
+                    proxima_calibracao: "2025-04-10",
+                },
+                {
+                    equipamento_codigo: "EHS030",
+                    laboratorio: "Lab4",
+                    certificado: "CertABC",
+                    norma: "ISO 27001",
+                    data_calibracao: "2023-05-25",
+                    prazo_calibracao: "2024-05-25",
+                    proxima_calibracao: "2025-05-25",
+                },
+                {
+                    equipamento_codigo: "0001",
+                    laboratorio: "Lab5",
+                    certificado: "CertDEF",
+                    norma: "ISO 45001",
+                    data_calibracao: "2023-06-15",
+                    prazo_calibracao: "2024-06-15",
+                    proxima_calibracao: "2025-06-15",
+                },
+                {
+                    equipamento_codigo: "0002",
+                    laboratorio: "Lab6",
+                    certificado: "CertGHI",
+                    norma: "ISO 14001",
+                    data_calibracao: "2023-07-08",
+                    prazo_calibracao: "2024-07-08",
+                    proxima_calibracao: "2025-07-08",
+                },
+                {
+                    equipamento_codigo: "0003",
+                    laboratorio: "Lab7",
+                    certificado: "CertJKL",
+                    norma: "OHSAS 18001",
+                    data_calibracao: "2023-08-20",
+                    prazo_calibracao: "2024-08-20",
+                    proxima_calibracao: "2025-08-20",
+                },
+                {
+                    equipamento_codigo: "0004",
+                    laboratorio: "Lab8",
+                    certificado: "CertMNO",
+                    norma: "ISO 9001",
+                    data_calibracao: "2023-09-05",
+                    prazo_calibracao: "2024-09-05",
+                    proxima_calibracao: "2025-09-05",
+                },
+                {
+                    equipamento_codigo: "0005",
+                    laboratorio: "Lab9",
+                    certificado: "CertPQR",
+                    norma: "ISO 45001",
+                    data_calibracao: "2023-10-18",
+                    prazo_calibracao: "2024-10-18",
+                    proxima_calibracao: "2025-10-18",
+                },
+                {
+                    equipamento_codigo: "0006",
+                    laboratorio: "Lab10",
+                    certificado: "CertSTU",
+                    norma: "ISO 14001",
+                    data_calibracao: "2023-11-30",
+                    prazo_calibracao: "2024-11-30",
+                    proxima_calibracao: "2025-11-30",
+                },
+                {
+                    equipamento_codigo: "0007",
+                    laboratorio: "Lab11",
+                    certificado: "CertVWX",
+                    norma: "OHSAS 18001",
+                    data_calibracao: "2024-01-10",
+                    prazo_calibracao: "2025-01-10",
+                    proxima_calibracao: "2026-01-10",
+                },
+                {
+                    equipamento_codigo: "0008",
+                    laboratorio: "Lab12",
+                    certificado: "CertYZA",
+                    norma: "ISO 27001",
+                    data_calibracao: "2024-02-22",
+                    prazo_calibracao: "2025-02-22",
+                    proxima_calibracao: "2026-02-22",
+                },
+                {
+                    equipamento_codigo: "0009",
+                    laboratorio: "Lab13",
+                    certificado: "CertBCD",
+                    norma: "ISO 45001",
+                    data_calibracao: "2024-03-15",
+                    prazo_calibracao: "2025-03-15",
+                    proxima_calibracao: "2026-03-15",
+                },
+                {
+                    equipamento_codigo: "0010",
+                    laboratorio: "Lab14",
+                    certificado: "CertEFG",
+                    norma: "ISO 14001",
+                    data_calibracao: "2024-04-28",
+                    prazo_calibracao: "2025-04-28",
+                    proxima_calibracao: "2026-04-28",
+                },
+                {
+                    equipamento_codigo: "0011",
+                    laboratorio: "Lab15",
+                    certificado: "CertHIJ",
+                    norma: "OHSAS 18001",
+                    data_calibracao: "2024-05-10",
+                    prazo_calibracao: "2025-05-10",
+                    proxima_calibracao: "2026-05-10",
+                },
+                {
+                    equipamento_codigo: "0012",
+                    laboratorio: "Lab16",
+                    certificado: "CertKLM",
+                    norma: "ISO 9001",
+                    data_calibracao: "2024-06-25",
+                    prazo_calibracao: "2025-06-25",
+                    proxima_calibracao: "2026-06-25",
+                },
+                {
+                    equipamento_codigo: "0013",
+                    laboratorio: "Lab17",
+                    certificado: "CertNOP",
+                    norma: "ISO 45001",
+                    data_calibracao: "2024-07-15",
+                    prazo_calibracao: "2025-07-15",
+                    proxima_calibracao: "2026-07-15",
+                },
+                {
+                    equipamento_codigo: "0014",
+                    laboratorio: "Lab18",
+                    certificado: "CertQRS",
+                    norma: "ISO 14001",
+                    data_calibracao: "2024-08-28",
+                    prazo_calibracao: "2025-08-28",
+                    proxima_calibracao: "2026-08-28",
+                },
+                {
+                    equipamento_codigo: "0015",
+                    laboratorio: "Lab19",
+                    certificado: "CertTUV",
+                    norma: "OHSAS 18001",
+                    data_calibracao: "2024-09-10",
+                    prazo_calibracao: "2025-09-10",
+                    proxima_calibracao: "2026-09-10",
+                },
+            ];
+
+            // Equipamentos
+            function renderiza_datalist_equipamentos() {
+                const datalist = document.querySelector(
+                    "#datalist_equipamentos"
+                );
+                datalist.innerHTML = "";
+
+                EQUIPAMENTOS.forEach((equipamento) => {
+                    datalist.innerHTML += `
+            <option value="${equipamento.codigo}">${equipamento.modelo}</option>
+        `;
+                });
+            }
+
+            function seleciona_equipamento() {
+                const codigo = String(
+                    document.querySelector("#input_equipamento").value
+                ).trim();
+
+                const equipamentos = EQUIPAMENTOS.filter(
+                    (equipamento) =>
+                        String(equipamento.codigo).trim() ==
+                        String(codigo).trim()
+                );
+
+                if (equipamentos.length == 0) {
+                    return;
+                }
+
+                renderiza_tabela_calibracoes(codigo);
+            }
+
+            // Tabela de calibrações
+            function renderiza_tabela_calibracoes(codigo_equipamento = null) {
+                document.querySelector(".tabela-calibracoes tbody").innerHTML =
+                    "";
+
+                if (codigo_equipamento === null) {
+                    if (pega_dados_url("codigo") == false) {
+                        return;
+                    }
+
+                    codigo_equipamento = pega_dados_url("codigo");
+                }
+
+                const calibracoes = CALIBRACOES.filter(
+                    (equipamento) =>
+                        String(equipamento.equipamento_codigo).trim() ==
+                        String(codigo_equipamento).trim()
+                );
+                if (calibracoes.length == 0) {
+                    toastr.info("Nenhuma calibração localizada");
+                    return;
+                }
+
+                calibracoes.forEach((calibracao) => {
+                    document.querySelector(
+                        ".tabela-calibracoes tbody"
+                    ).innerHTML += `
+                            <tr>
+                                <td>${calibracao.laboratorio}</td>
+                                <td>${calibracao.certificado}</td>
+                                <td>${calibracao.norma}</td>
+                                <td>${calibracao.data_calibracao}</td>
+                                <td>${calibracao.prazo_calibracao}</td>
+                                <td>${calibracao.proxima_calibracao}</td>
+                                <td>
+                                    <a  
+                                        href="./assets/pdfs/manual_de_ehs.pdf"
+                                        class="btn btn-success"
+                                        title="Vizualizar certificado"
+                                    >
+                                        Ver
+                                    </a>
+                                </td>
+                            </tr>
+                        `;
+                });
+            }
+
+            // Auxiliares
+            function pega_dados_url(parametro) {
+                let data = {};
+
+                String(window.location.search)
+                    .substring(1)
+                    .split("&")
+                    .forEach((item) => {
+                        const name = String(item).split("=")?.[0];
+                        const value = String(item).split("=")?.[1];
+
+                        data[name] = value;
+                    });
+                if (!data.hasOwnProperty(parametro)) {
+                    return false;
+                }
+
+                return data?.[parametro];
+            }
+
+            // Inicialização
+            window.addEventListener("load", async function () {
+                // Equipamentos
+                renderiza_datalist_equipamentos();
+
+                // Tabela de calibrações
+                renderiza_tabela_calibracoes();
+            });
+        </script>
+    </body>
+</html>
